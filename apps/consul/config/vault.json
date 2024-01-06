@@ -1,0 +1,7 @@
+{
+    "service": {
+        "name": "vault",
+        "tags": ["vault"],
+        "port": 8200
+    }
+}
