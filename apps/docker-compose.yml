@@ -1,0 +1,60 @@
+version: "3.8"
+
+services:
+  reverse-proxy:
+    image: traefik:v2.10
+    command: --api.insecure=true --providers.docker
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+  
+  consul-server:
+    image: hashicorp/consul:1.10.0
+    container_name: consul-server
+    restart: always
+    volumes:
+     - ./consul/config/server.json:/consul/config/server.json:ro
+     - ./consul/config/vault.json:/consul/config/vault.json:ro
+    ports:
+      - "8500:8500"
+      - "8600:8600/tcp"
+      - "8600:8600/udp"
+    command: "agent"
+    labels:
+      - "traefik.http.routers.consul.rule=Host(`consul.localhost`)"
+
+    depends_on:
+      - reverse-proxy
+
+  consul-client:
+    image: hashicorp/consul:1.10.0
+    container_name: consul-client
+    restart: always
+    volumes:
+     - ./consul/config/client.json:/consul/config/client.json:ro
+     - ./consul/config/vault.json:/consul/config/vault.json:ro
+    command: "agent"
+    depends_on:
+      - consul-server
+
+  vault:
+      image: arm64v8/vault:latest
+      volumes:
+        - ./vault/config:/vault/config
+        - ./vault/policies:/vault/policies
+        - ./vault/data:/vault/data
+      ports:
+        - 8200:8200
+      environment:
+        - VAULT_ADDR=http://0.0.0.0:8200
+        - VAULT_API_ADDR=http://0.0.0.0:8200
+        - VAULT_ADDRESS=http://0.0.0.0:8200
+      cap_add:
+        - IPC_LOCK
+      command: vault server -config=/vault/config/config.json
+      labels:
+        - "traefik.http.routers.vault.rule=Host(`vault.localhost`)"
+      depends_on:
+        - consul-client
