@@ -1,0 +1,17 @@
+{
+    "node_name": "0xvmx-server",
+    "datacenter": "0xvmx",
+    "server": true,
+    "bootstrap" : true,
+    "ui_config": {
+        "enabled" : true
+    },
+
+    "connect": {
+        "enabled": true
+    },
+    "data_dir": "/consul/data",
+    "addresses": {
+        "http" : "0.0.0.0"
+    }
+}
