@@ -1,0 +1,5 @@
+{
+    "bootstrap": true,
+    "server": true,
+    "datacenter": "0xvmx"   
+}
